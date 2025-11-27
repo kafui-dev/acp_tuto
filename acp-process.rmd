@@ -138,7 +138,7 @@ Visualisons les résultats de l'ACP à l'aide de graphiques.
 ### Scree plot: Importance des composantes principales
 ```{r}
 fviz_eig(res_pca, addlabels = TRUE, ylim = c(0, 50))
-ggsave("./pca_scree_plot.png")
+ggsave("./viz/pca_scree_plot.png")
 ```
 
 #### Interprétation du scree plot:
@@ -149,7 +149,7 @@ ggsave("./pca_scree_plot.png")
 ### Cercle des corrélations: Relations entre variables
 ```{r}
 fviz_pca_var(res_pca, col.var = "cos2", gradient.cols = c("blue", "yellow", "red"), repel = TRUE)
-ggsave("./pca_correlation_circle.png")
+ggsave("./viz/pca_correlation_circle.png")
 ```
 #### Explication du code:
 - `fviz_pca_var()`: Fonction du package factoextra pour visualiser les variables dans le plan des composantes principales.
@@ -175,6 +175,7 @@ res_pca$var$cos2
 ### Graphique des individus
 ```{r}
 fviz_pca_ind(res_pca, habillage = wine$Type, addEllipses = TRUE, ellipse.type = "confidence", repel = TRUE)
+ggsave("./viz/pca_individuals.png")
 ```
 #### Explication du code:
 - `fviz_pca_ind()`: Fonction du package factoextra pour visualiser les individus dans le plan des composantes principales.
@@ -232,6 +233,7 @@ indiv_pc2[1:5]
 ### Biplot combiné
 ```{r}
 fviz_pca_biplot(res_pca, habillage = wine$Type, addEllipses = TRUE, ellipse.type = "confidence", repel = TRUE)
+ggsave("./viz/pca_biplot.png")
 ```
 
 
