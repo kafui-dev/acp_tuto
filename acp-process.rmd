@@ -1,0 +1,265 @@
+---
+title: "ACP Process"
+author: "Kafui Homevo"
+output: html_notebook
+---
+
+```{r}
+# Nous allons utiliser le package FactoMineR pour réaliser une Analyse en Composantes Principales (ACP), et le package factoextra pour visualiser les résultats. Installons et chargeons ces packages si ce n'est pas déjà fait.
+
+#install.packages(c("FactoMineR", "factoextra"))
+
+library(FactoMineR)
+library(factoextra)
+```
+
+# Analyse en Composantes Principales (ACP) avec R, sur le dataset wine
+Nous allons réaliser notre étude sur le dataset wine. Ce dataset contient des informations sur différents types de vin, avec plusieurs variables chimiques mesurées.
+Nous allons suivre les étapes suivantes :
+1. Charger les données
+2. Préparer les données
+3. Réaliser l'ACP
+4. Visualiser les résultats
+5. Interpréter les résultats
+
+
+## 1. Charger les données
+Chargeons le dataset wine.
+```{r}
+data(wine, package = "rattle")
+head(wine)
+
+# Affichons la structure des données
+str(wine)
+dim(wine)
+
+# résumé statistique des données
+summary(wine)
+```
+```{r}
+# Vérification des valeurs manquantes
+anyNA(wine)
+
+# Effectifs pour chaque classe de vin
+table(wine$Type)
+```
+
+## 2. Préparer les données
+Objectifs:
+- Séparer les variables explicatives de la variable cible (Type de vin)
+- Standardiser les données si nécessaire
+- Vérifier la matrice standardisée
+```{r}
+# On a remarqué que la variable Type est qualitative, nous allons la séparer des variables quantitatives.
+Y <- wine$Type
+X <- wine[, -1]  # Suppression de la première colonne (Type)
+```
+
+Vérifions que toutes les colonnes de X sont numériques.
+```{r}
+str(X)
+```
+
+Standardisons les données
+```{r}
+X_scaled <- scale(X)
+```
+
+Vérifions la matrice standardisée
+```{r}
+head(X_scaled)
+summary(X_scaled)
+```
+```{r}
+anyNA(X_scaled)
+```
+Super, il n'y a toujours pas de valeurs manquantes.
+
+## 3. Réaliser l'ACP
+Nous allons maintenant réaliser l'ACP sur les données standardisées.
+```{r}
+res_pca <- PCA(wine, scale.unit = TRUE, quali.sup = 1, graph = FALSE)
+```
+Explication du code:
+- `PCA()`: Fonction du package FactoMineR pour réaliser l'ACP.
+- `scale.unit = TRUE`: Indique que les données doivent être standardisées.
+- `quali.sup = 1`: Indique que la première colonne (Type) est une variable qualitative supplémentaire.
+- `graph = FALSE`: Empêche l'affichage automatique des graphiques
+- `res_pca`: Objet contenant les résultats de l'ACP.
+
+On peut donc se poser la question: pourquoi avoir fait les manipulations précédentes si on peut directement utiliser le dataset wine dans la fonction PCA() ?
+Au début de notre analyse, nous avons séparé les variables explicatives de la variable cible et standardisé les données pour mieux comprendre le processus d'ACP. Cependant, la fonction PCA() de FactoMineR gère automatiquement ces étapes lorsqu'on lui fournit le dataset complet, ce qui simplifie le processus.
+Notez qu'on aurait pu continuer à faire l'ACP avec les données standardisées, mais l'utilisation directe du dataset wine avec PCA() est plus pratique et efficace. Et on aurait même pu se passer d'utiliser PCA(), et aller directement à la main, étape par étape, mais cela aurait été plus long et fastidieux.
+
+### Inspectons les résultats de l'ACP
+```{r}
+# valeurs propres, inertie, cumul
+res_pca$eig
+```
+#### Interprétation des valeurs propres:
+- Chaque valeur propre représente la quantité de variance expliquée par chaque composante principale.
+- L'inertie indique la proportion de variance expliquée par chaque axe.
+On remarque que les deux premiers axes expliquent environ 60% (55%) de la variance totale. Ils sont donc suffisants pour représenter les données dans un espace réduit (2D).
+
+```{r}
+# coordonnées des variables
+res_pca$var$coord
+```
+#### Interprétation des coordonnées des variables:
+- Les coordonnées des variables sur les axes principaux indiquent leur contribution à chaque composante.
+- Des coordonnées élevées (positives ou négatives) indiquent une forte contribution de la variable à l'axe correspondant.
+- Les variables proches les unes des autres sont corrélées positivement, tandis que celles éloignées sont corrélées négativement.
+- Les variables proches de l'origine ont une faible contribution aux axes principaux.
+- Les variables qui sont éloignées de l'origine dans une direction donnée ont une forte contribution à cette composante principale.
+```{r}
+# contributions des variables aux axes
+res_pca$var$contrib
+```
+#### Interprétation des contributions des variables:
+- Les contributions indiquent l'importance relative de chaque variable dans la formation des axes principaux.
+- Des contributions élevées signifient que la variable joue un rôle significatif dans la définition de l'axe.
+- On peut utiliser ces contributions pour identifier les variables les plus influentes dans la structure des données.
+```{r}
+# coordonnées des individus
+res_pca$ind$coord
+```
+#### Interprétation des coordonnées des individus:
+- Les coordonnées des individus sur les axes principaux indiquent leur position dans l'espace réduit.
+- Les individus proches les uns des autres dans cet espace sont similaires en termes de caractéristiques mesurées.
+- Les individus éloignés les uns des autres sont dissemblables.
+- On peut utiliser ces coordonnées pour visualiser la distribution des individus et identifier des groupes ou des tendances dans les données.
+
+#### Différence entre coordonnées et contributions:
+- Les coordonnées des variables et des individus représentent leur position dans l'espace des composantes principales, tandis que les contributions indiquent l'importance relative de chaque variable dans la formation des axes principaux.
+
+## 4. Visualiser les résultats
+Visualisons les résultats de l'ACP à l'aide de graphiques.
+
+### Scree plot: Importance des composantes principales
+```{r}
+fviz_eig(res_pca, addlabels = TRUE, ylim = c(0, 50))
+```
+
+#### Interprétation du scree plot:
+- Le scree plot montre la variance expliquée par chaque composante principale.
+- On peut observer une diminution progressive de la variance expliquée par les composantes, ce qui veut dire que les premières composantes capturent la majorité de l'information. Ici, les deux premières composantes expliquent une part significative de la variance totale, donc confirmant notre choix de les utiliser pour la visualisation.
+- On peut également utiliser le scree plot pour déterminer le nombre optimal de composantes à retenir en cherchant un "coude" dans la courbe. Le coude indique le point où l'ajout de composantes supplémentaires n'apporte plus une augmentation significative de la variance expliquée. Dans le cas présent, le coude est plus visible à partir de la 4e composante, ce qui suggère que retenir les 3 premières composantes est approprié pour une visualisation en 3D. Mais pour une visualisation en 2D, les deux premières composantes suffisent.
+
+### Cercle des corrélations: Relations entre variables
+```{r}
+fviz_pca_var(res_pca, col.var = "cos2", gradient.cols = c("blue", "yellow", "red"), repel = TRUE)
+```
+#### Explication du code:
+- `fviz_pca_var()`: Fonction du package factoextra pour visualiser les variables dans le plan des composantes principales.
+- `col.var = "cos2"`: Colore les variables en fonction de leur qualité de représentation (cos2).
+- `gradient.cols = c("blue", "yellow", "red")`: Définit un dégradé de couleurs pour les variables.
+- `repel = TRUE`: Évite le chevauchement des étiquettes des variables.
+
+#### Interprétation du cercle des corrélations:
+- Le cercle des corrélations montre les relations entre les variables dans le plan des deux premières composantes principales.
+- Les variables proches les unes des autres sont corrélées positivement, tandis que celles éloignées sont corrélées négativement.
+- Les variables proches du cercle extérieur sont bien représentées dans le plan, tandis que celles proches du centre ont une faible contribution aux axes principaux.
+- Par exemple, si deux variables sont proches l'une de l'autre et éloignées du centre, cela indique qu'elles sont fortement corrélées positivement. En revanche, si deux variables sont éloignées l'une de l'autre, cela suggère une corrélation négative entre elles.
+
+#### Qualité de représentation (cos2):
+- Le cos2 (cosinus carré) mesure la qualité de représentation d'une variable sur les axes principaux.
+- Un cos2 élevé (proche de 1) indique que la variable est bien représentée dans le plan des composantes principales.
+- Un cos2 faible (proche de 0) indique que la variable n'est pas bien représentée dans ce plan.
+Voyons quelles variables sont les mieux représentées:
+```{r}
+res_pca$var$cos2
+```
+
+### Graphique des individus
+```{r}
+fviz_pca_ind(res_pca, habillage = wine$Type, addEllipses = TRUE, ellipse.type = "confidence", repel = TRUE)
+```
+#### Explication du code:
+- `fviz_pca_ind()`: Fonction du package factoextra pour visualiser les individus dans le plan des composantes principales.
+- `habillage = wine$Type`: Colore les individus en fonction de leur type de vin.
+- `addEllipses = TRUE`: Ajoute des ellipses de confiance autour des groupes d'individus.
+- `ellipse.type = "confidence"`: Définit le type d'ellipse à dessiner (ici, des ellipses de confiance).
+- `repel = TRUE`: Évite le chevauchement des étiquettes des individus.
+
+#### Interprétation du graphique des individus:
+- Le graphique des individus montre la distribution des vins dans le plan des deux premières composantes principales.
+- Les individus proches les uns des autres dans cet espace sont similaires en termes de caractéristiques mesurées.
+- Les ellipses de confiance autour des groupes d'individus indiquent la dispersion des types de vin.
+- Par exemple, si les individus d'un type de vin sont regroupés dans une zone spécifique du graphique, cela suggère qu'ils partagent des caractéristiques similaires. En revanche, si les individus d'un type de vin sont dispersés, cela indique une plus grande variabilité au sein de ce type.
+- On remarque que les trois types de vin sont bien séparés dans le plan des composantes principales, ce qui indique que les caractéristiques chimiques mesurées permettent de distinguer efficacement les différents types de vin.
+
+
+## 5. Interpréter les résultats
+L'ACP nous a permis de réduire la dimensionnalité des données tout en conservant une grande partie de l'information. Voici quelques points clés à retenir:
+- Les deux premières composantes principales expliquent une part significative de la variance totale (environ 60%).
+- Le cercle des corrélations montre les relations entre les variables, avec certaines variables fortement corrélées.
+- Le graphique des individus révèle une séparation claire entre les différents types de vin, indiquant que les caractéristiques chimiques mesurées sont efficaces pour distinguer les types de vin.
+- Les variables les plus contributives aux axes principaux peuvent être identifiées à partir des contributions, ce qui peut guider des analyses ultérieures ou des décisions basées sur ces caractéristiques.
+```{r}
+# contributions des variables aux axes, pour les 2 premières composantes
+res_pca$var$contrib[, 1:2]
+```
+```{r}
+# qualité de représentation pour les 2 premières composantes
+res_pca$var$cos2[, 1:2]
+res_pca$ind$cos2[, 1:2]
+```
+```{r}
+# ordonnons les contributions des variables pour la première composante
+contrib_pc1 <- sort(res_pca$var$contrib[, 1], decreasing = TRUE)
+contrib_pc1[1:5]
+```
+```{r}
+# ordonnons les contributions des variables pour la deuxième composante
+contrib_pc2 <- sort(res_pca$var$contrib[, 2], decreasing = TRUE)
+contrib_pc2[1:5]
+```
+```{r}
+# individus les plus représentatifs pour la première composante
+indiv_pc1 <- sort(res_pca$ind$cos2[, 1], decreasing = TRUE)
+indiv_pc1[1:5]
+```
+```{r}
+# individus les plus représentatifs pour la deuxième composante
+indiv_pc2 <- sort(res_pca$ind$cos2[, 2], decreasing = TRUE)
+indiv_pc2[1:5]
+```
+
+## Conclusion
+
+### Biplot combiné
+```{r}
+fviz_pca_biplot(res_pca, habillage = wine$Type, addEllipses = TRUE, ellipse.type = "confidence", repel = TRUE)
+```
+
+
+## Conclusions finales — ACP sur l'ensemble de données « wine »
+
+### Préparation des données
+- 178 échantillons de vin, décrits par 13 variables chimiques quantitatives et 1 variable qualitative (classe).
+- Les données ont été centrées et mises à l'échelle afin que chaque variable contribue de manière égale à l'ACP.
+- Aucune valeur manquante ; toutes les caractéristiques sont numériques — l'ensemble de données est prêt pour l'ACP.
+
+### Résumé de l'ACP (FactoMineR)
+- ACP effectuée sur les 13 variables quantitatives avec la classe comme variable qualitative supplémentaire.
+- Variance expliquée :
+  - Axe 1 : 36,2 %
+  - Axe 2 : 19,2 %
+  - 4 premiers axes : ~73,6 %
+- Conclusion pratique : la conservation de 2 à 4 composantes permet de capturer la majorité des informations.
+
+### Interprétation des axes principaux
+- Axe 1 (intensité phénolique/chimique) : principaux contributeurs — flavonoïdes, phénols, dilution. Interprété comme l'intensité aromatique/phénolique.
+- Axe 2 (visuel/sensoriel) : principaux contributeurs — Couleur, alcool. Interprété comme caractéristiques visuelles et liées à l'alcool.
+
+### Groupes de variables et corrélations
+- Les flavonoïdes, les phénols et les proanthocyanidines forment un groupe fortement corrélé (propriétés similaires).
+- L'alcalinité et les non-flavonoïdes forment un groupe corrélé distinct.
+- Le cercle de corrélation et cos² mettent en évidence les variables les mieux représentées sur les premiers axes et celles qui sont discriminantes.
+
+### Individus, classes et biplot
+- Les trois classes (variétés) sont bien séparées dans l'espace factoriel ; la classe 3 semble la plus isolée.
+- Certains échantillons individuels sont légèrement atypiques, mais restent cohérents avec leur groupe.
+- Représentatif
+
+Traduit avec DeepL.com (version gratuite)
