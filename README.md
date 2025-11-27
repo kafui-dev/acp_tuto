@@ -1,6 +1,6 @@
 # ACP Process — Analyse en Composantes Principales (ACP)
 
-Ce dépôt contient une étude d'Analyse en Composantes Principales (ACP) réalisée sur le jeu de données "wine" (fourni par le package `rattle`). L'objectif est d'illustrer les étapes classiques d'une ACP : préparation des données, réalisation de l'ACP avec `FactoMineR`, visualisation avec `factoextra`, et interprétation des résultats.
+Ce dépôt contient une étude d'Analyse en Composantes Principales (ACP) réalisée sur le jeu de données "wine" (jeu de données intégré à R). L'objectif est d'illustrer les étapes classiques d'une ACP : préparation des données, réalisation de l'ACP avec `FactoMineR`, visualisation avec `factoextra`, et interprétation des résultats.
 
 ## Contenu du dépôt
 
@@ -11,12 +11,12 @@ Ce dépôt contient une étude d'Analyse en Composantes Principales (ACP) réali
 
 Prérequis :
 - R (version récente recommandée)
-- Packages R : `FactoMineR`, `factoextra`, `rattle` (pour le dataset `wine`).
+- Packages R : `FactoMineR`, `factoextra`. Le jeu de données `wine` est fourni avec R (package `datasets`).
 
 Exemples de commandes R pour installer les dépendances :
 
 ```r
-install.packages(c("FactoMineR", "factoextra", "rattle"))
+install.packages(c("FactoMineR", "factoextra"))
 ```
 
 Pour exécuter le script principal :
@@ -32,7 +32,7 @@ Pour générer le rapport HTML (optionnel) : ouvrez `acp-process.rmd` dans RStud
 
 ## Jeu de données
 
-L'analyse utilise le jeu de données `wine` fourni par le package `rattle`. Les données incluent 178 observations et 13 variables quantitatives décrivant des propriétés chimiques de vins, ainsi qu'une variable qualitative (Type).
+L'analyse utilise le jeu de données `wine` intégré au package `datasets` de base R. Les données incluent 178 observations et 13 variables quantitatives décrivant des propriétés chimiques de vins, ainsi qu'une variable qualitative (Type).
 
 ## Remarque sur l'utilisation de l'IA
 
@@ -41,4 +41,3 @@ Pour accélérer la rédaction du rapport, certains paragraphes descriptifs ont 
 ## Contact
 
 Pour toute question concernant l'analyse ou la reproduction des résultats, contactez l'auteur (Kafui Homevo) via les canaux habituels.
-
